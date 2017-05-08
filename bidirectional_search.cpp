@@ -12,7 +12,7 @@
 
 using namespace std;
 
-// std::ifstream ifs("facebook_combined.txt");
+
 std::ifstream ifs("com_youtube_ungraph.txt");
 // # Undirected graph: ../../data/output/youtube.ungraph.txt
 // # Youtube
@@ -58,6 +58,7 @@ struct Node
 {
 	int id;
 	int type;
+	int depth
 	// type = 0 start
 	// type = 1 goal
 };
@@ -65,10 +66,10 @@ struct Node
 
 void bidirectional_search::exec(){
 	queue<Node> q;
-	Node start_n = {start_id, 0};
+	Node start_n = {start_id, 0, 0};
 	start_visited[start_id] = true;
 	goal_visited[goal_id] = true;
-	Node goal_n = {goal_id, 1};
+	Node goal_n = {goal_id, 1, 0};
 	q.push(start_n);
 	q.push(goal_n);
 
@@ -96,9 +97,10 @@ void bidirectional_search::exec(){
 			}
 		}
 
+		api_call_count++;
 		for (int i = 0; i < adj[cur.id].size(); ++i)
 		{	
-			Node next = {adj[cur.id][i], cur.type};
+			Node next = {adj[cur.id][i], cur.type, cur.depth + 1};
 			if(cur.type == 0){
 			}else{
 				
