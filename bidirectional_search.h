@@ -9,6 +9,8 @@
 #include <unordered_map>
 #include <queue>
 
+#include "graph_data.h"
+
 class  bidirectional_search
 {
 private:
@@ -19,10 +21,10 @@ private:
 	std::unordered_map<int, bool> visited;
 	std::unordered_map<int, bool> start_visited;
 	std::unordered_map<int, bool> goal_visited;
+	std::unordered_map<int, int> depth_visited;
 
 public:
-	bidirectional_search(int _start_id, int _goal_id);
-	std::vector<int> fetch_next(int cur);
+	bidirectional_search(int _start_id, int _goal_id, graph_data gd);
 	void exec();
 };
 
