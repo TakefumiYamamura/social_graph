@@ -30,10 +30,11 @@ graph_data::graph_data(string file_name){
 		ust.insert(tmp_a);
 		ust.insert(tmp_b);
 		edges.push_back(pair<int, int>(tmp_a, tmp_b));
-		max_v = max(tmp_a, tmp_b);
+		max_v = max(max_v, max(tmp_a, tmp_b));
 	}
 	adj.resize(max_v + 1);
-	UnionFindTree uft = UnionFindTree(max_v);
+	cout << max_v + 1 << endl;
+	uft = UnionFindTree(max_v+1);
 	for (int i = 0; i < edges.size(); ++i)
 	{
 		uft.unite(edges[i].first, edges[i].second);
@@ -64,10 +65,14 @@ UnionFindTree graph_data::fetch_uft(){
 
 pair<int, int> graph_data::fetch_two_nodes(){
 	int p1 = distribution(generator);
+	while(ust.find(p1) == ust.end()){
+		p1 = distribution(generator);
+	}
 	int p2 = distribution(generator);
-	while(p1 != p2 || uft.same(nodes[p1], nodes[p2]) == false){
+	uft.same(p1, p2);
+	while(p1 == p2 || uft.same(p1, p2) == false || ust.find(p2) == ust.end() ){
 		p2 = distribution(generator);
 	}
-	return pair<int, int>(nodes[p1], nodes[p2]);
+	return pair<int, int>(p1, p2);
 }
 

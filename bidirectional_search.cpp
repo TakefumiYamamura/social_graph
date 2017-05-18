@@ -11,6 +11,7 @@
 #include "bidirectional_search.h"
 #include "union_find.h"
 #include "graph_data.h"
+#include "result.h"
 
 using namespace std;
 
@@ -44,12 +45,21 @@ struct Node
 	// type = 1 goal
 };
 
+void bidirectional_search::print_result(int api_count, int open_node, int depth){
+	cout << "bidirectional_search_result" << endl; 
+	cout << "api_call_count is : ";
+	cout << api_count << endl;
+	cout << "open node num is  : ";
+	cout << open_node << endl;
+	cout << "depth is          : ";
+	cout << depth << endl;
+}
 
-void bidirectional_search::exec(){
+Result bidirectional_search::exec(){
 	priority_queue<Node> q;
 	Node start_n = {start_id, 0, 0, adj[start_id].size()};
-	// start_visited[start_id] = true;
-	// goal_visited[goal_id] = true;
+	start_visited[start_id] = 0;
+	goal_visited[goal_id] = 0;
 	Node goal_n = {goal_id, 1, 0, adj[goal_id].size()};
 	q.push(start_n);
 	q.push(goal_n);
@@ -57,40 +67,49 @@ void bidirectional_search::exec(){
 	while(!q.empty()){
 		Node cur = q.top();
 		q.pop();
+
 		if(cur.type == 0){
-			if(start_visited[cur.id]) continue;
-			start_visited[cur.id] = true;
 			if(goal_visited.find(cur.id) != goal_visited.end()){
-				cout << "api_call_count is " << endl;
-				cout << api_call_count << endl;
-				cout << "open node num is " << endl;
-				cout << start_visited.size() + goal_visited.size() << endl;
-				cout << "depth is " << endl;
-				cout << depth_visited[cur.id] + cur.depth << endl;
-				return;
+				int node_size = start_visited.size() + goal_visited.size();
+				int depth = start_visited[cur.id] + goal_visited[cur.id];
+				print_result(api_call_count, node_size, depth);
+				return Result(node_size, depth, api_call_count);
 			}
-			depth_visited[cur.id] = cur.depth;
 		}else{
-			if(goal_visited[cur.id]) continue;
-			goal_visited[cur.id] = true;
 			if(start_visited.find(cur.id) != start_visited.end()){
-				cout << "api_call_count is " << endl;
-				cout << api_call_count << endl;
-				cout << "open node num is " << endl;
-				cout << start_visited.size() + goal_visited.size() << endl;
-				cout << "depth is " << endl;
-				cout << depth_visited[cur.id] + cur.depth << endl;
-				return;
+				int node_size = start_visited.size() + goal_visited.size();
+				int depth = start_visited[cur.id] + goal_visited[cur.id];
+				return Result(node_size, depth, api_call_count);
 			}
-			depth_visited[cur.id] = cur.depth;
 		}
 
 		api_call_count++;
 		for (int i = 0; i < adj[cur.id].size(); ++i)
 		{	
-			Node next = {adj[cur.id][i], cur.type, cur.depth + 1, adj[adj[cur.id][i]].size()};
+			int next_i = adj[cur.id][i];
+			if(cur.type == 0 && start_visited.find(next_i) != start_visited.end() ) continue;
+			if(cur.type == 1 && goal_visited.find(next_i) != goal_visited.end() ) continue;
+			Node next = {next_i, cur.type, cur.depth + 1, adj[next_i].size()};
 			q.push(next);
+			if(cur.type == 0){
+				start_visited[next_i] = next.depth;
+				if(goal_visited.find(next_i) != goal_visited.end()){
+					int node_size = start_visited.size() + goal_visited.size();
+					int depth = start_visited[next_i] + goal_visited[next_i];
+					print_result(api_call_count, node_size, depth);
+					return Result(node_size, depth, api_call_count);
+				}
+			}else{
+				goal_visited[next_i] = next.depth;
+				if(start_visited.find(next_i) != start_visited.end()){
+					int node_size = start_visited.size() + goal_visited.size();
+					int depth = start_visited[next_i] + goal_visited[next_i];
+					print_result(api_call_count, node_size, depth);
+				    return Result(node_size, depth, api_call_count);
+				}
+			}
 		}
 	}
+	return Result(0, 0, 0);
 
 }

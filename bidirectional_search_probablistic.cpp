@@ -15,6 +15,7 @@
 #include "bidirectional_search_probablistic.h"
 #include "union_find.h"
 #include "graph_data.h"
+#include "result.h"
 
 using namespace std;
 
@@ -85,12 +86,21 @@ int bidirectional_search_probablistic::delay_func(){
 }
 
 
-void bidirectional_search_probablistic::exec(){
+void bidirectional_search_probablistic::print_result(int api_count, int open_node, int depth){
+	cout << "bidirectional_search_probablistic_result" << endl; 
+	cout << "api_call_count is : ";
+	cout << api_count << endl;
+	cout << "open node num is  : ";
+	cout << open_node << endl;
+	cout << "depth is          : ";
+	cout << depth << endl;
+}
+
+Result bidirectional_search_probablistic::exec(){
 	map<int, priority_queue<Node> > map_q;
-	// unordered_map<int, priority_queue<Node> > um;
 	Node start_n = {start_id, 0, 0, adj[start_id].size()};
-	// start_visited[start_id] = true;
-	// goal_visited[goal_id] = true;
+	start_visited[start_id] = 0;
+	goal_visited[goal_id] = 0;
 	Node goal_n = {goal_id, 1, 0, adj[goal_id].size()};
 	depth_map[0] = 2;
 	map_q[0].push(start_n);
@@ -98,51 +108,57 @@ void bidirectional_search_probablistic::exec(){
 	int queue_num = 2;
 
 	while(queue_num != 0){
-		// auto itr  = map_q.begin();
+
 		int selected_itr = delay_func();
 		Node cur = map_q[selected_itr].top();
 		map_q[selected_itr].pop();
 		queue_num--;
 		
 		if(cur.type == 0){
-			if(start_visited[cur.id]) continue;
-			start_visited[cur.id] = true;
 			if(goal_visited.find(cur.id) != goal_visited.end()){
-				cout << "api_call_count is " << endl;
-				cout << api_call_count << endl;
-				cout << "open node num is " << endl;
-				cout << start_visited.size() + goal_visited.size() << endl;
-				cout << "depth is " << endl;
-				cout << depth_visited[cur.id] + cur.depth << endl;
-				break;
+				int node_size = start_visited.size() + goal_visited.size();
+				int depth = start_visited[cur.id] + goal_visited[cur.id];
+				print_result(api_call_count, node_size, depth);
+				return Result(node_size, depth, api_call_count);
 			}
-			depth_visited[cur.id] = cur.depth;
 		}else{
-			if(goal_visited[cur.id]) continue;
-			goal_visited[cur.id] = true;
 			if(start_visited.find(cur.id) != start_visited.end()){
-				cout << "api_call_count is " << endl;
-				cout << api_call_count << endl;
-				cout << "open node num is " << endl;
-				cout << start_visited.size() + goal_visited.size() << endl;
-				cout << "depth is " << endl;
-				cout << depth_visited[cur.id] + cur.depth << endl;
-				break;
+				int node_size = start_visited.size() + goal_visited.size();
+				int depth = start_visited[cur.id] + goal_visited[cur.id];
+				print_result(api_call_count, node_size, depth);
+				return Result(node_size, depth, api_call_count);
 			}
-			depth_visited[cur.id] = cur.depth;
 		}
 
 		api_call_count++;
 		for (int i = 0; i < adj[cur.id].size(); ++i)
 		{	
-			// if(cur.type == 0 && start_visited[cur.id]) continue;
-			// if(cur.type == 1 && goal_visited[cur.id]) continue;
-			Node next = {adj[cur.id][i], cur.type, cur.depth + 1, adj[adj[cur.id][i]].size()};
+			int next_i = adj[cur.id][i];
+			if(cur.type == 0 && start_visited.find(next_i) != start_visited.end() ) continue;
+			if(cur.type == 1 && goal_visited.find(next_i) != goal_visited.end() ) continue;
+			Node next = {next_i, cur.type, cur.depth + 1, adj[next_i].size()};
 			map_q[next.depth].push(next);
 			queue_num++;
 			depth_map[next.depth]++;
+			if(cur.type == 0){
+				start_visited[next_i] = next.depth;
+				if(goal_visited.find(next_i) != goal_visited.end()){
+					int node_size = start_visited.size() + goal_visited.size();
+					int depth = start_visited[next_i] + goal_visited[next_i];
+					print_result(api_call_count, node_size, depth);
+					return Result(node_size, depth, api_call_count);
+				}
+			}else{
+				goal_visited[next_i] = next.depth;
+				if(start_visited.find(next_i) != start_visited.end()){
+					int node_size = start_visited.size() + goal_visited.size();
+					int depth = start_visited[next_i] + goal_visited[next_i];
+					print_result(api_call_count, node_size, depth);
+					return Result(node_size, depth, api_call_count);
+				}
+			}
 		}
 		depth_map[cur.depth]--;
 	}
-
+	return Result(0, 0, 0);
 }
